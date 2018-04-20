@@ -1,12 +1,12 @@
-class travel:
+class Travel:
     DFS = 101
     BFS = 102
 
-class method:
+class Method:
     GET = "GET"
     POST = "POST"
 
-class text_type:
+class TextType:
     JSON = "JSON"
     HTML = "HTML"
     STRING = "STRING"
