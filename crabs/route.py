@@ -1,40 +1,45 @@
-from crabs.handler import Handler
-from crabs.options import method
+from crabs.handler import Handler, DefaultHandler
+from crabs.options import Method
 import re
 
 class Route:
-    _METHODS = [method.GET, method.POST]
-    _HANDLERS = []
-    _PATTERNS = []
-    _ROUTE = {
-        method.GET: [],
-        method.POST: []
-    }
+    def __init__(self):
+        self._methods = [Method.GET, Method.POST]
+        self._routes = []
 
-    @classmethod
-    def _check_method(cls, method):
-        if method in cls._METHODS:
+    def _check_method(self, method):
+        if method in self._methods:
             return True
         else:
             raise NotSupportMethodExp
 
-    @classmethod
-    def dispatch(cls, url, method=method.GET):
-        self._check_method(method)
-        for pt, func in cls._ROUTE[method]:
-            if pt.match(url):
-                func(url) # TODO
+    def set_routes(self, routes):
+        if not isinstance(routes, list):
+            raise TypeError("List required.")
+        for route in routes:
+            route_para_n = len(route)
+            if route_para_n >= 2:
+                self.listen(*route)
+            else:
+                raise RouteError            
 
-    @classmethod
-    def listen(cls, pattern, handler, method=method.GET):
-        if not isinstance(handler, Handler):
-            raise TypeError
+    def dispatch(self, url):
+        for pt, handler_cls, method in self._routes:
+            if pt.match(url.url):
+                return handler_cls(url, method) 
+        return DefaultHandler(url, Method.GET)
+        
+    def _ext_pattern(self, pattern):
+        return r".+" + pattern
+
+    def listen(self, pattern, handler, method=Method.GET):
         self._check_method(method)
-        cls._ROUTE[method].append(
-            (re.compile(pattern), handler)
+        self._routes.append(
+            (re.compile(self._ext_pattern(pattern)), handler, method)
         )
-        cls._HANDLERS.append(handler)
-        cls._PATTERNS.append(handler)
 
 class NotSupportMethodExp(Exception):
+    pass
+
+class RouteError(Exception):
     pass
