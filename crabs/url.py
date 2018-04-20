@@ -1,16 +1,18 @@
 from urllib.parse import urljoin, urlsplit
 import re
 
+_FULL_URL_RE = re.compile(r"\w+://.+")
+
 class URL:
-    def __init__(self, url, origin):
-        if url is None or origin is None:
+    def __init__(self, url, origin=None):
+        if url is None:
             raise TypeError
         if not isinstance(url, str):
             url = str(url)
-        if not isinstance(origin, str):
+        if origin and not isinstance(origin, str):
             origin = str(origin)
         self._url = url
-        self._origin = origin
+        self._origin = origin or url
         self._scheme = None
         self._netloc = None
         self._url_split_ = None
@@ -42,18 +44,16 @@ class URL:
     def __repr__(self):
         return self.url
 
-    @property
-    def _is_full_url(self):
-        if self._full_url_reobj is None:
-            self._full_url_reobj = re.compile(r"\w+://.+")
-        if self._full_url_reobj.match(self._url):
+    @staticmethod
+    def is_full_url(url):
+        if _FULL_URL_RE.match(url):
             return True
         else:
             return False
 
     @property
     def url(self):
-        if not self._is_full_url:
+        if not self.is_full_url(self._url):
             self._url = urljoin(self._origin, self._url)
         return self._url
 
@@ -74,3 +74,6 @@ class URL:
         if self._scheme is None:
             self._scheme = self._url_split.scheme
         return self._scheme
+
+class URLError(Exception):
+    pass
