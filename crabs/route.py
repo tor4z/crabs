@@ -1,13 +1,14 @@
 from crabs.handler import Handler
+from crabs.options import method
 import re
 
 class Route:
-    _METHODS = ["GET", "POST"]
+    _METHODS = [method.GET, method.POST]
     _HANDLERS = []
     _PATTERNS = []
     _ROUTE = {
-        "GET": [],
-        "POST": []
+        method.GET: [],
+        method.POST: []
     }
 
     @classmethod
@@ -18,14 +19,14 @@ class Route:
             raise NotSupportMethodExp
 
     @classmethod
-    def dispatch(cls, url, method="GET"):
+    def dispatch(cls, url, method=method.GET):
         self._check_method(method)
         for pt, func in cls._ROUTE[method]:
             if pt.match(url):
                 func(url) # TODO
 
     @classmethod
-    def listen(cls, pattern, handler, method="GET"):
+    def listen(cls, pattern, handler, method=method.GET):
         if not isinstance(handler, Handler):
             raise TypeError
         self._check_method(method)
@@ -33,13 +34,7 @@ class Route:
             (re.compile(pattern), handler)
         )
         cls._HANDLERS.append(handler)
-        cls._PATTERNS .append(handler)
-
-    @classmethod
-    def dispatch_url(cls, url):
-        for handler in cls._HANDLERS:
-            if handler.is_match(url):
-                return handler.new_url(url)
+        cls._PATTERNS.append(handler)
 
 class NotSupportMethodExp(Exception):
     pass
