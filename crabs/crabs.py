@@ -1,51 +1,63 @@
 from queue import PriorityQueue
 from crabs.url import URL, URLError
+from crabs.route import Route
 
 class Crabs:
-    _ROUTE = None
-    _SEEDS = []
-    _URLS = PriorityQueue()
-    _INITIALIZED = False
+    def __init__(self):
+        self._routes = None
+        self._seed = []
+        self._urls = PriorityQueue()
+        self._initialized = False
 
-    @classmethod
-    def set_route(cls, route):
-        cls._ROUTE = route
+    def set_routes(self, routes):
+        self._routes = Route()
+        self._routes.set_routes(routes)
 
-    @classmethod
-    def set_seeds(cls, seeds):
+    def set_seeds(self, seeds):
         if not isinstance(seeds, list):
             raise TypeError("List required.")
-        cls._SEEDS = seeds
+        self._seed = seeds
 
-    @classmethod
-    def _init_seed(cls):
-        for url in cls._SEEDS:
+    def _init_seed(self):
+        for url in self._seed:
             if not URL.is_full_url(url):
                 raise URLError
-            cls._URLS.put(URL(url))
+            self._urls.put(URL(url))
 
-    @classmethod
-    def initialize(cls):
-        if not cls._INITIALIZED:
-            cls._init_seed()
-            cls._INITIALIZED = True
+    def initialize(self):
+        if not self._initialized:
+            self._init_seed()
+            self._initialized = True
 
-    @classmethod
-    def put_links(cls, urls):
-        if not isinstance(urls, list):
-            urls = [urls]
-        for url in urls:
-            if isinstance(url, URL):
-                cls._URLS.put(url)
-            elif isinstance(url, str):
-                cls._URLS.put(URL(url))
-            else:
+    def put_links(self, urls):
+        if urls:
+            if not isinstance(urls, list):
+                urls = [urls]
+            if not isinstance(urls[0], URL):
                 raise TypeError
+        
+            for url in urls:
+                if isinstance(url, URL):
+                    self._urls.put(url)
+                elif isinstance(url, str):
+                    self._urls.put(URL(url))
+                else:
+                    raise TypeError
 
-    @classmethod
-    def _route_run(cls):
-        pass
+    def _get_url(self, *args, **kwargs):
+        return self._urls.get(*args, **kwargs)
 
-    @classmethod
-    def run(cls):
-        cls.initialize()
+    def _exec_handler(self, handler):
+        handler.execute()
+        urls = handler.links()
+        self.put_links(urls)
+
+    def _route_loop(self):
+        while True:
+            url = self._get_url(block=False)
+            handler = self._routes.dispatch(url)
+            self._exec_handler(handler)
+
+    def run(self):
+        self.initialize()
+        self._route_loop()
