@@ -1,16 +1,27 @@
 from bs4 import BeautifulSoup
-import re
+import re, json
 from crabs.url import URL
 
-class HTMLParser:
-    def __init__(self, page, parser = "html.parser"):
-        self._parser = parser
+class Parser:
+    def __init__(self, page):
         self._page = page
-        self._soup_ = None
-    
+
     @property
     def text(self):
         return self._page.text
+
+    def find_one(self, *args, **kwargs):
+        raise NotImplemented
+
+    def find_all(self, *args, **kwargs):
+        raise NotImplemented
+
+class HTMLParser(Parser):
+    def __init__(self, page, parser = "html.parser"):
+        self._parser = parser
+        self._is_html = None
+        self._soup_ = None
+        Parser.__init__(self, page)
 
     @property
     def _soup(self):
@@ -20,6 +31,9 @@ class HTMLParser:
 
     def find_all(self, *args, **kwargs):
         return self._soup.find_all(*args, **kwargs)
+
+    def find_one(self, *args, **kwargs):
+        return self._soup.find(*args, **kwargs)
 
     def find_all_links(self, *args, **kwargs):
         links = self.find_all("a")
@@ -32,9 +46,16 @@ class HTMLParser:
                 pass
         return urls
 
-class StrParser:
+    @property
+    def is_html(self):
+        if self._is_html is None:
+            self._is_html = bool(self._soup.find())
+        return self._is_html
+
+class StrParser(Parser):
     def __init__(self, pattern):
         self._re_obj = re.compile(pattern)
+        Parser.__init__(self, page)
     
     def _to_string(self, string):
         if isinstance(string, str) or isinstance(string, bytes):
@@ -53,3 +74,27 @@ class StrParser:
         if m:
             return m.group(1)
         return None
+
+class JSONParser(Parser):
+    def __init__(self, page):
+        self._data = None
+        Parser.__init__(self, page)
+
+    def find_all(self, *args, **kwargs):
+        return self.data.get(arg[0])
+
+    def find_one(self, *args, **kwargs):
+        return self.find_all(*args, **kwargs)
+
+    def data(self):
+        if self._data is None:
+            self._data = json.loads(self.text)
+        return self._data
+
+    @property
+    def is_json(self):
+        try:
+            self.data
+            return True
+        except:
+            return False
