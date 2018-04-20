@@ -4,7 +4,7 @@ import re
 _FULL_URL_RE = re.compile(r"\w+://.+")
 
 class URL:
-    def __init__(self, url, origin=None):
+    def __init__(self, url, origin=None, depth=0):
         if url is None:
             raise TypeError
         if not isinstance(url, str):
@@ -16,7 +16,7 @@ class URL:
         self._scheme = None
         self._netloc = None
         self._url_split_ = None
-        self._depth = 0
+        self._depth = depth
         self._full_url_reobj = None
 
     def insc_depth(self):

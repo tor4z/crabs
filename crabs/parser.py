@@ -24,6 +24,10 @@ class HTMLParser(Parser):
         Parser.__init__(self, page)
 
     @property
+    def depth(self):
+        return self._page.depth
+
+    @property
     def _soup(self):
         if self._soup_ is None:
             self._soup_ = BeautifulSoup(self.text, self._parser)
@@ -40,7 +44,7 @@ class HTMLParser(Parser):
         urls = []
         for link in links:
             try:
-                url = URL(link.get("href"), self._page.url)
+                url = URL(link.get("href"), self._page.url, self.depth + 1)
                 urls.append(url)
             except TypeError:
                 pass
@@ -53,7 +57,7 @@ class HTMLParser(Parser):
         return self._is_html
 
 class StrParser(Parser):
-    def __init__(self, pattern):
+    def __init__(self, page, pattern):
         self._re_obj = re.compile(pattern)
         Parser.__init__(self, page)
     

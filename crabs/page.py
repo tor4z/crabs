@@ -34,3 +34,7 @@ class Page:
         if self._scheme is None:
             self._scheme = self._url_split.scheme
         return self._scheme
+
+    @property
+    def depth(self):
+        return self.url.depth
