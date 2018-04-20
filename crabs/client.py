@@ -11,6 +11,11 @@ class Client:
     def set_header(self, key, value):
         self._header[key] = value
 
+    def set_headers(self, headers):
+        if not isinstance(headers, dict):
+            raise TypeError("Dict required.")
+        self._header.update(headers)
+
     def get(self, url, data=None):
         self._url = url
         req = Request('GET', url, data=data, headers=self._header)
@@ -29,6 +34,10 @@ class Client:
             return Page(self._resp.text, self._url)
         else:
             raise NotRespExp
+
+    @property
+    def status(self):
+        return self._resp.status_code
 
 class NotRespExp(Exception):
     pass
