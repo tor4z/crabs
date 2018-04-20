@@ -1,3 +1,5 @@
+import re
+
 class Set:
     def __init__(self):
         self._set = set()
@@ -26,28 +28,6 @@ class Set:
 
     def __contains__(self, obj):
         return obj in self._set
-
-class URL:
-    def __init__(self, key):
-        if not isinstance(key, str):
-            raise TypeError
-        self.key = key
-
-    def __hash__(self):
-        return self._key.__hash__()
-
-    def __eq__(self, other):
-        return self.key == other.key
-
-    def __str__(self):
-        return self.url()
-
-    def __repr__(self):
-        return self.url()
-
-    def url(self):
-        raise NotImplemented
-
 
 class SetEmptyExp(Exception):
     pass
