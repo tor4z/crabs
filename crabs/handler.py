@@ -1,8 +1,8 @@
 import re, json
 from crabs.url import URL
-from crabs.client import Client
+from crabs.client import Client, NotSuportMethodExp
 from crabs.parser import HTMLParser, JSONParser, StrParser
-from crabs.options import method, text_type
+from crabs.options import Method, TextType
 
 class Handler:
     def __init__(self, url, method):
@@ -17,14 +17,16 @@ class Handler:
         self._text_type = None
         self._data = None
         self._status = None
+        self._has_put_links = False
         self.init()
 
     def set_header(self, key, value):
         self._headers[key] = value
 
+    @property
     def _client(self):
         if self._client_ is None:
-            self._client_ = Client()
+            self._client_ = Client(self.url, self.data, self.method)
             self._client_.set_headers(self._headers)
         return self._client_
 
@@ -34,15 +36,23 @@ class Handler:
         self._data = data
 
     @property
+    def data(self):
+        return self._data
+
+    @property
+    def method(self):
+        return self._method
+
+    @property
     def text_type(self):
         if self._text_type is None:
             text = self.page.text
             if self._json_parser().is_json:
-                self._text_type = text_type.JSON
+                self._text_type = TextType.JSON
             if self._html_parser().is_html:
-                self._text_type = text_type.HTML
+                self._text_type = TextType.HTML
             else:
-                self._text_type = text_type.STRING
+                self._text_type = TextType.STRING
         return self._text_type
     
     def _html_parser(self):
@@ -66,33 +76,51 @@ class Handler:
     @property
     def page(self):
         if self._page is None:
-            if self._method == method.GET:
-                self._page = self._client.get(self.url)
-            elif self._method == method.POST:
-                self._page = self._client.post(self.url, data = self._data)
+            if self.method == Method.GET:
+                self._page = self._client.get()
+            elif self.method == Method.POST:
+                self._page = self._client.post()
             else:
                 raise NotSuportMethodExp
 
-            self._page = client.page
+            self._page = self._client.page
         return self._page
 
     @property
     def parsed(self):
         if self._parsed is None:
-            if self._text_type == text_type.HTML:
+            if self.text_type == TextType.HTML:
                 self._parsed = HTMLParser(self.page)
-            elif self._text_type == text_type.JSON:
+            elif self.text_type == TextType.JSON:
                 self._parsed = JSONParser(self.page)
             else:  # string
-                self._parsed = StrParser(self.page)
+                raise NotSupportStrParser
         return self._parsed
 
     @property
     def url(self):
         return self._url
 
-    def _put_links(self):
-        pass
+    def links(self):
+        if not self._has_put_links:
+            if self.text_type == TextType.HTML:
+                urls = self.parsed.find_all_links()
+                self._has_put_links = True
+                return urls
+        return []
+
+    def _check_status(self):
+        if self.status != 200:
+            raise HttpError
+    
+    def execute(self):
+        self._check_status()
+        if self.method == Method.GET:
+            self.get()
+        elif self.method == Method.POST:
+            self.post()
+        else:
+            raise NotSuportMethodExp
 
     def init(self):
         pass
@@ -103,5 +131,11 @@ class Handler:
     def post(self):
         pass
 
-class NotSuportMethodExp(Exception):
+class DefaultHandler(Handler):
+    pass
+
+class HttpError(Exception):
+    pass
+
+class NotSupportStrParser(Exception):
     pass
