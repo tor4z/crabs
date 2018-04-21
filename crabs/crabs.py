@@ -20,12 +20,18 @@ class Crabs:
         self._log_level = None
         self._log_file = None
         self._log = None
+        self._client_headers = {}
     
     @property
     def _routes(self):
         if self._routes_ is None:
             self._routes_ = Route()
         return self._routes_
+
+    def set_client_headers(self, headers):
+        if not isinstance(headers):
+            raise TypeError("Dict required.")
+        self._client_headers.update(headers)
 
     def set_log_name(self, name):
         self._log_name = name
@@ -140,8 +146,8 @@ class Crabs:
     def _route_loop(self):
         while True:
             url = self._get_url(block=False)
-            print(self._urls.qsize())
             handler = self._routes.dispatch(url)
+            handler.set_headers(self._client_headers)
             self._exec_handler(handler)
 
     def run(self):

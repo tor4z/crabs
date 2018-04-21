@@ -5,15 +5,17 @@ from crabs.parser import HTMLParser, JSONParser, StrParser
 from crabs.options import Method, TextType
 
 class Handler:
-    def __init__(self, url, method):
+    def __init__(self, url, method, headers={}):
         if not isinstance(url, URL):
             raise TypeError
+        if not isinstance(headers):
+            raise TypeError("Dict required.")
         self._url = url
         self._page = None
         self._method = method
         self._parsed = None
         self._client_ = None
-        self._headers = {}
+        self._headers = headers
         self._text_type = None
         self._data = None
         self._status = None
@@ -22,6 +24,11 @@ class Handler:
 
     def set_header(self, key, value):
         self._headers[key] = value
+
+    def set_headers(self, headers)
+        if not isinstance(headers):
+            raise TypeError("Dict required.")
+        self._headers.update(headers)
 
     @property
     def _client(self):

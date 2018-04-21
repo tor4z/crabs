@@ -5,9 +5,9 @@ from crabs.url import URL
 from crabs.options import Method
 
 class Client:
-    def __init__(self, url=None, data=None, method=None):
+    def __init__(self, url=None, data=None, method=None, headers={}):
         self._session = Session()
-        self._header = {}
+        self._header = headers
         self._method = method
         self._url = url
         self._data = data
