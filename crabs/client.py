@@ -1,4 +1,5 @@
 from requests import Request, Session
+from requests.exceptions import ConnectionError
 from crabs.page import Page
 from crabs.url import URL
 from crabs.options import Method
@@ -29,17 +30,23 @@ class Client:
         if self._data and not isinstance(self._data, dict):
             raise TypeError("Dict required.")
 
+    def _send(self, prepped):
+        try:
+            self._resp = self._session.send(prepped)
+        except ConnectionError:
+            raise ClientConnError
+
     def get(self, url=None, data=None):
         self._check_para(url, data)
         req = Request('GET', self._url.raw, data=self._data, headers=self._header)
         prepped = req.prepare()
-        self._resp = self._session.send(prepped)
+        self._send(prepped)
 
     def post(self, url=None, data=None):
         self._check_para(url, data)
         req = Request('POST', self._url.raw, data=self._data, headers=self._header)
         prepped = req.prepare()
-        self._resp = self._session.send(prepped)
+        self._send(prepped)
 
     @property
     def page(self):
@@ -66,4 +73,7 @@ class NotRespExp(Exception):
     pass
 
 class NotSuportMethodExp(Exception):
+    pass
+
+class ClientConnError(Exception):
     pass
