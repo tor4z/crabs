@@ -3,6 +3,7 @@ from crabs.url import URL, URLError
 from crabs.route import Route
 from crabs.options import Travel
 from crabs.client import ClientConnError
+from crabs.logs import Log
 import re
 
 class Crabs:
@@ -14,12 +15,29 @@ class Crabs:
         self._max_depth = 6
         self._allow_netlocs_re = []
         self._initialized = False
+        self._log_name = self.__class__.__name__
+        self._log_format = None
+        self._log_level = None
+        self._log_file = None
+        self._log = None
     
     @property
     def _routes(self):
         if self._routes_ is None:
             self._routes_ = Route()
         return self._routes_
+
+    def set_log_name(self, name):
+        self._log_name = name
+    
+    def set_log_format(self, format):
+        self._log_format = format
+    
+    def set_log_level(self, level):
+        self._log_level = level
+
+    def set_log_file(self, file):
+        self._log_file = file
 
     def set_allow_netloc(self, netlocs):
         if not isinstance(netlocs, list):
@@ -55,9 +73,19 @@ class Crabs:
                 raise URLError
             self.put_link(self._new_url(url))
 
+    def _init_log(self):
+        if self._log is None:
+            self._log = Log(self._log_name, 
+            self._log_format, self._log_level, self._log_file)
+        
+    @property
+    def log(self):
+        return self._log
+
     def initialize(self):
         if not self._initialized:
             self._init_seed()
+            self._init_log()
             self._initialized = True
 
     def _check_depth(self, url):
@@ -121,6 +149,6 @@ class Crabs:
             self.initialize()
             self._route_loop()
         except KeyboardInterrupt:
-            pass
+            self.log.info("Exit.")
         except Empty:
-            pass
+            self.log.fatal("URL set empty.")
