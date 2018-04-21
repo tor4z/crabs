@@ -21,32 +21,35 @@ class Client:
             raise TypeError("Dict required.")
         self._header.update(headers)
 
-    def _check_para(self, url=None, data=None):
-        if url:  self._url = url
-        if data: self._data = data
-
         if not self._url or not isinstance(self._url, URL):
             raise TypeError("URL required.")
         if self._data and not isinstance(self._data, dict):
             raise TypeError("Dict required.")
 
-    def _send(self, prepped):
+    def _send(self, req):
+        prepped = req.prepare()
         try:
             self._resp = self._session.send(prepped)
         except ConnectionError:
             raise ClientConnError
 
+    def _set_header_host(self):
+        self.set_header("Host", self._url.netloc)
+
+    def _init_req(self, url=None, data=None):
+        if url:  self._url = url
+        if data: self._data = data
+        self._set_header_host()
+
     def get(self, url=None, data=None):
-        self._check_para(url, data)
+        self._init_req(url, data)
         req = Request('GET', self._url.raw, data=self._data, headers=self._header)
-        prepped = req.prepare()
-        self._send(prepped)
+        self._send(req)
 
     def post(self, url=None, data=None):
-        self._check_para(url, data)
+        self._init_req(url, data)
         req = Request('POST', self._url.raw, data=self._data, headers=self._header)
-        prepped = req.prepare()
-        self._send(prepped)
+        self._send(req)
 
     @property
     def page(self):
