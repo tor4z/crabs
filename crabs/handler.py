@@ -8,7 +8,7 @@ class Handler:
     def __init__(self, url, method, headers={}):
         if not isinstance(url, URL):
             raise TypeError
-        if not isinstance(headers):
+        if not isinstance(headers, dict):
             raise TypeError("Dict required.")
         self._url = url
         self._page = None
@@ -25,8 +25,8 @@ class Handler:
     def set_header(self, key, value):
         self._headers[key] = value
 
-    def set_headers(self, headers)
-        if not isinstance(headers):
+    def set_headers(self, headers):
+        if not isinstance(headers, dict):
             raise TypeError("Dict required.")
         self._headers.update(headers)
 
@@ -118,7 +118,7 @@ class Handler:
 
     def _check_status(self):
         if self.status != 200:
-            raise HttpError
+            raise HttpError(self.status)
     
     def execute(self):
         self._check_status()

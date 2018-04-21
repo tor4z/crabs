@@ -4,6 +4,7 @@ from crabs.route import Route
 from crabs.options import Travel
 from crabs.client import ClientConnError
 from crabs.logs import Log
+from crabs.handler import HttpError
 import re
 
 class Crabs:
@@ -29,7 +30,7 @@ class Crabs:
         return self._routes_
 
     def set_client_headers(self, headers):
-        if not isinstance(headers):
+        if not isinstance(headers, dict):
             raise TypeError("Dict required.")
         self._client_headers.update(headers)
 
@@ -137,7 +138,10 @@ class Crabs:
         try:
             handler.execute()
         except ClientConnError:
-            return
+            self.log.exception("ClientConnError:{0}".format(handler.url))
+        except HttpError as e:
+            self.log.exception("HttpError(0):{1}".format(e, handler.url))
+
         urls = handler.links()
         for url, depth in urls:
             url = self._new_url(url, depth=depth)
@@ -146,6 +150,7 @@ class Crabs:
     def _route_loop(self):
         while True:
             url = self._get_url(block=False)
+            self.log.info("Scraping:{0}".format(url))
             handler = self._routes.dispatch(url)
             handler.set_headers(self._client_headers)
             self._exec_handler(handler)
