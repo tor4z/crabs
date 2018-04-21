@@ -31,13 +31,13 @@ class Client:
 
     def get(self, url=None, data=None):
         self._check_para(url, data)
-        req = Request('GET', self._url.url, data=self._data, headers=self._header)
+        req = Request('GET', self._url.raw, data=self._data, headers=self._header)
         prepped = req.prepare()
         self._resp = self._session.send(prepped)
 
     def post(self, url=None, data=None):
         self._check_para(url, data)
-        req = Request('POST', self._url.url, data=self._data, headers=self._header)
+        req = Request('POST', self._url.raw, data=self._data, headers=self._header)
         prepped = req.prepare()
         self._resp = self._session.send(prepped)
 

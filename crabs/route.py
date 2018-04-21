@@ -25,7 +25,7 @@ class Route:
 
     def dispatch(self, url):
         for pt, handler_cls, method in self._routes:
-            if pt.match(url.url):
+            if pt.match(url.raw):
                 return handler_cls(url, method) 
         return DefaultHandler(url, Method.GET)
         

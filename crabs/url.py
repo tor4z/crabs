@@ -52,7 +52,7 @@ class URL:
             return False
 
     @property
-    def url(self):
+    def raw(self):
         if not self.is_full_url(self._url):
             self._url = urljoin(self._origin, self._url)
         return self._url
