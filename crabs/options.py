@@ -1,4 +1,5 @@
 class Travel:
+    All = [101, 102]
     DFS = 101
     BFS = 102
 
