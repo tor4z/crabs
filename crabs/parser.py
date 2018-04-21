@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import re, json
-from crabs.url import URL
+from crabs.url import URL, URLError
 
 class Parser:
     def __init__(self, page):
@@ -44,9 +44,9 @@ class HTMLParser(Parser):
         urls = []
         for link in links:
             try:
-                url = URL(link.get("href"), self._page.url, self.depth + 1)
+                url = (URL.urljoin(self._page.url.raw, link.get("href")), self.depth + 1)
                 urls.append(url)
-            except TypeError:
+            except URLError:
                 pass
         return urls
 
