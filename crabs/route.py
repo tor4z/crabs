@@ -1,6 +1,6 @@
-from crabs.handler import Handler, DefaultHandler
-from crabs.options import Method
 import re
+from .handler import Handler, DefaultHandler
+from .options import Method
 
 class Route:
     def __init__(self):

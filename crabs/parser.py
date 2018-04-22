@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import re, json
-from crabs.url import URL, URLError
+from .url import URL, URLError
 
 class Parser:
     def __init__(self, page):

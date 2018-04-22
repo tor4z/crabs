@@ -1,8 +1,8 @@
 import re, json
-from crabs.url import URL
-from crabs.client import Client, NotSuportMethodExp
-from crabs.parser import HTMLParser, JSONParser, StrParser
-from crabs.options import Method, TextType
+from .url import URL
+from .client import Client, NotSuportMethodExp
+from .parser import HTMLParser, JSONParser, StrParser
+from .options import Method, TextType
 
 class Handler:
     def __init__(self, url, method, headers={}):

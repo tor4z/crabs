@@ -1,6 +1,6 @@
 from urllib.parse import urljoin, urlsplit
 import re
-from crabs.options import Travel
+from .options import Travel
 
 _FULL_URL_RE = re.compile(r"\w+://.+")
 

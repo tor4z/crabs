@@ -1,8 +1,8 @@
 from requests import Request, Session
 from requests.exceptions import ConnectionError
-from crabs.page import Page
-from crabs.url import URL
-from crabs.options import Method
+from .page import Page
+from .url import URL
+from .options import Method
 
 class Client:
     def __init__(self, url=None, data=None, method=None, headers={}):

@@ -1,10 +1,10 @@
 from queue import PriorityQueue, Empty
-from crabs.url import URL, URLError
-from crabs.route import Route
-from crabs.options import Travel
-from crabs.client import ClientConnError
-from crabs.logs import Log
-from crabs.handler import HttpError
+from .url import URL, URLError
+from .route import Route
+from .options import Travel
+from .client import ClientConnError
+from .logs import Log
+from .handler import HttpError
 import re
 
 class Crabs:
