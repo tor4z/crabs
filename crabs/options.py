@@ -7,7 +7,4 @@ class Method:
     GET = "GET"
     POST = "POST"
 
-class TextType:
-    JSON = "JSON"
-    HTML = "HTML"
-    STRING = "STRING"
+from .client.options import *
