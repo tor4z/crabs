@@ -36,7 +36,7 @@ class Request:
                                     url = self._url.raw, 
                                     data = self._data, 
                                     cookies = self._cookies,
-                                    headers = self._header)
+                                    headers = self._headers)
             self._prepare = req.prepare()
         return self._prepare
 
