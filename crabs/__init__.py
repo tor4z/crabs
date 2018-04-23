@@ -1,8 +1,5 @@
-from crabs.crabs import Crabs
-from crabs.parser import HTMLParser, StrParser
-from crabs.data import Set
-from crabs.url import URL
-from crabs.page import Page
-from crabs.route import Route
-from crabs.client import Client
-from crabs.handler import Handler
+from .crabs import Crabs
+from .client.parser import HTMLParser, StrParser
+from .data import Set
+from .route import Route
+from .handler import Handler
