@@ -128,7 +128,7 @@ class ThreadPool:
             for t in self._pool:
                 t.join()
 
-class ThreadPoolExcutor:
+class ThreadPoolExecutor:
     def __init__(self, max_size=None, queue_cls=None):
         self._threadpool = ThreadPool(max_size=max_size, queue_cls=queue_cls)
 
@@ -141,12 +141,12 @@ class ThreadPoolExcutor:
     def submit(self, func, *args, **kwargs):
         return self._threadpool.submit(func, *args, **kwargs)
 
-class DefaultThreadPool(_Singleton, ThreadPool):
+class StaticThreadPoolExecutor(_Singleton, ThreadPoolExecutor):
     def __init__(self):
         _Singleton.__init__(self)
 
-    def initialize(self, max_size=None, queue_cls=None):
-        ThreadPool.__init__(self, max_size=max_size, queue_cls=queue_cls)
+    def _initialize(self, max_size=None, queue_cls=None):
+        ThreadPoolExecutor.__init__(self, max_size=max_size, queue_cls=queue_cls)
 
 class FutureExp(Exception):
     pass

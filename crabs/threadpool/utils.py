@@ -6,11 +6,11 @@ class _Singleton:
         if not _new:
             raise Exception("Don't instancing it direct")
 
-    def initialize(self, *args, **kwargs):
+    def _initialize(self, *args, **kwargs):
         pass
         
     @classmethod
-    def instance(cls, *args, **kwargs):
+    def _instance(cls, *args, **kwargs):
         if not hasattr(cls, "_LOCK"):
             with cls._SINGLETON_LOCK:
                 if not hasattr(cls, "_LOCK"):

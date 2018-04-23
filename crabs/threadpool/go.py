@@ -1,4 +1,4 @@
-from .threadpool import DefaultThreadPool
+from .threadpool import StaticThreadPoolExecutor
 
 class go:
     def __init__(self, func):
@@ -6,7 +6,7 @@ class go:
 
     @property
     def _threadpool(self):
-        return DefaultThreadPool.instance()
+        return StaticThreadPoolExecutor._instance()
 
     def __call__(self, *args, **kwargs):
         future = self._threadpool.submit(self._func, *args, **kwargs)
