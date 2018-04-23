@@ -141,12 +141,8 @@ class ThreadPoolExecutor:
     def submit(self, func, *args, **kwargs):
         return self._threadpool.submit(func, *args, **kwargs)
 
-class StaticThreadPoolExecutor(_Singleton, ThreadPoolExecutor):
-    def __init__(self):
-        _Singleton.__init__(self)
-
-    def _initialize(self, max_size=None, queue_cls=None):
-        ThreadPoolExecutor.__init__(self, max_size=max_size, queue_cls=queue_cls)
+    def shutdown(self, *args, **kwargs):
+        self._threadpool.shutdown(*args, **kwargs)
 
 class FutureExp(Exception):
     pass

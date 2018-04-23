@@ -7,7 +7,7 @@ from .client import ClientConnError
 from .logs import Log
 from .handler import HttpError, DefaultHandler
 from .client import Client
-from .threadpool.threadpool import StaticThreadPoolExecutor
+from .threadpool.threadpool import ThreadPoolExecutor
 
 class Crabs:
     def __init__(self):
@@ -76,8 +76,8 @@ class Crabs:
         self._seed = seeds
 
     def set_default_threadpool(self, max_size, queue_cls=None):
-        self._executor = StaticThreadPoolExecutor.\
-                            _instance(max_size, queue_cls)
+        self._executor = ThreadPoolExecutor._instance(max_size, 
+                                                      queue_cls)
 
     def _new_url(self, url, origin=None, depth=0):
         return URL(url, origin, depth, self._travel_mod)
@@ -191,4 +191,4 @@ class Crabs:
         self.shutdown()
 
     def shutdown(self, wait=True):
-        self._threadpool.shutdown(wait)
+        self._executor.shutdown(wait)
