@@ -12,7 +12,7 @@ class Route:
         else:
             raise NotSupportMethodExp
 
-    def set_routes(self, routes):
+    def update_routes(self, routes):
         if not isinstance(routes, list):
             raise TypeError("List required.")
         for route in routes:
