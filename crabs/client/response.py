@@ -1,6 +1,7 @@
 from urllib.parse import urlsplit, urljoin
 import json
 from .options import TextType
+from .parser import HTMLParser
 
 class Response:
     def __init__(self, resp, url):
@@ -64,7 +65,7 @@ class Response:
     @property
     def status(self):
         if self._status is None:
-            if self._response is None:
+            if self._resp is None:
                 raise NotResponseExp
             self._status = self._resp.status_code
         return self._status
@@ -72,14 +73,14 @@ class Response:
     @property
     def reason(self):
         if self._reason is None:
-            self._reason = self.resp.reason
+            self._reason = self._resp.reason
         return self._reason
 
     @property
     def html(self):
         if self._html is None:
             if self.text_type == TextType.HTML:
-                self._html = HTMLParser(self.text)
+                self._html = HTMLParser(self.text, self.url)
             else:
                 raise TypeError("{0} is not a html page.".format(self.url))
         return self._html
@@ -91,7 +92,7 @@ class Response:
         self.status
         self.reason
 
-    def close():
+    def close(self):
         if not self._close:
             self._before_close()
             self._resp.close()
