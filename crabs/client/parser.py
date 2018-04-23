@@ -3,12 +3,12 @@ import re, json
 from .url import URL, URLError
 
 class Parser:
-    def __init__(self, page):
-        self._page = page
+    def __init__(self, text):
+        self._text = text
 
     @property
     def text(self):
-        return self._page.text
+        return self._text
 
     def find_one(self, *args, **kwargs):
         raise NotImplemented
@@ -17,15 +17,12 @@ class Parser:
         raise NotImplemented
 
 class HTMLParser(Parser):
-    def __init__(self, page, parser = "html.parser"):
+    def __init__(self, text, url, parser = "html.parser"):
         self._parser = parser
         self._is_html = None
         self._soup_ = None
-        Parser.__init__(self, page)
-
-    @property
-    def depth(self):
-        return self._page.depth
+        self._url = url
+        Parser.__init__(self, text)
 
     @property
     def _soup(self):
@@ -44,7 +41,7 @@ class HTMLParser(Parser):
         urls = []
         for link in links:
             try:
-                url = (URL.urljoin(self._page.url.raw, link.get("href")), self.depth + 1)
+                url = URL.urljoin(self._url.raw, link.get("href"))
                 urls.append(url)
             except URLError:
                 pass
@@ -57,9 +54,9 @@ class HTMLParser(Parser):
         return self._is_html
 
 class StrParser(Parser):
-    def __init__(self, page, pattern):
+    def __init__(self, text, pattern):
         self._re_obj = re.compile(pattern)
-        Parser.__init__(self, page)
+        Parser.__init__(self, text)
     
     def _to_string(self, string):
         if isinstance(string, str) or isinstance(string, bytes):
@@ -80,9 +77,9 @@ class StrParser(Parser):
         return None
 
 class JSONParser(Parser):
-    def __init__(self, page):
+    def __init__(self, text):
         self._data = None
-        Parser.__init__(self, page)
+        Parser.__init__(self, text)
 
     def find_all(self, *args, **kwargs):
         return self.data.get(arg[0])
