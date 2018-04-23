@@ -1,13 +1,16 @@
 from queue import PriorityQueue, Empty
 import re
-from .url import URL, URLError
 from .route import Route
-from .options import Travel
-from .client import ClientConnError
+from .options import Travel, Method
 from .logs import Log
-from .handler import HttpError, DefaultHandler
-from .client import Client
+from .handler import DefaultHandler
 from .threadpool.threadpool import ThreadPoolExecutor
+from .client.url import URL, URLError
+from .client.utils import ClientHeaders
+from .client.client import (Client, 
+                            HttpError, 
+                            ClientTooManyRedirects, 
+                            HttpConnError)
 
 class Crabs:
     def __init__(self):
@@ -17,6 +20,7 @@ class Crabs:
         self._travel_mod = Travel.BFS
         self._max_depth = 6
         self._allow_netlocs_re = []
+        self._disallow_paths_re = []
         self._initialized = False
         self._log_name = self.__class__.__name__
         self._log_format = None
@@ -25,6 +29,8 @@ class Crabs:
         self._log = None
         self._client = None
         self._executor = None
+        self._scraped_count = 0
+        self._max_redirects = None
         self._client_headers = {}
     
     @property
@@ -33,10 +39,13 @@ class Crabs:
             self._routes_ = Route()
         return self._routes_
 
-    def set_client_headers(self, headers):
+    def update_client_headers(self, headers):
         if not isinstance(headers, dict):
             raise TypeError("Dict required.")
         self._client_headers.update(headers)
+
+    def set_client_max_redirects(self, max_redirects):
+        self._max_redirects = max_redirects
 
     def set_log_name(self, name):
         self._log_name = name
@@ -57,8 +66,15 @@ class Crabs:
             netloc = re.compile(re.sub(r"\*", "\w*?" ,netloc))
             self._allow_netlocs_re.append(netloc)
 
-    def set_routes(self, routes):
-        self._routes.set_routes(routes)
+    def set_disallow_path(self, paths):
+        if not isinstance(paths, list):
+            raise TypeError("List required.")
+        for path in paths:
+            path = re.compile(re.sub(r"\*", "\w*" ,path))
+            self._disallow_paths_re.append(path)
+
+    def update_routes(self, routes):
+        self._routes.update_routes(routes)
 
     def set_max_depth(self, depth):
         if depth < 1:
@@ -75,7 +91,7 @@ class Crabs:
             raise TypeError("List required.")
         self._seed = seeds
 
-    def set_default_threadpool(self, max_size, queue_cls=None):
+    def set_executor(self, max_size=None, queue_cls=None):
         self._executor = ThreadPoolExecutor._instance(max_size, 
                                                       queue_cls)
 
@@ -86,15 +102,20 @@ class Crabs:
         for url in self._seed:
             if not URL.is_full_url(url):
                 raise URLError
-            self.put_link(self._new_url(url))
+            self.put_url(self._new_url(url))
 
     def _init_log(self):
         if self._log is None:
             self._log = Log(self._log_name, 
             self._log_format, self._log_level, self._log_file)
+
+    def _init_default_client_headers(self):
+        self.update_client_headers(ClientHeaders)
         
     @property
     def executor(self):
+        if self._executor is None:
+            self.set_executor()
         return self._executor
     
     @property
@@ -111,6 +132,7 @@ class Crabs:
         if not self._initialized:
             self._init_seed()
             self._init_log()
+            self._init_default_client_headers()
             self._initialized = True
 
     def _check_depth(self, url):
@@ -149,13 +171,22 @@ class Crabs:
                 return True
         return False
 
+    def _path_filter(self, url):
+        if not self._disallow_paths_re:
+            return True
+        for path_re in self._disallow_paths_re:
+            if path_re.match(url.path):
+                return False
+        return True
+
     def _url_filter(self, url):
-        return self._netloc_filter(url)
+        return self._netloc_filter(url) and\
+               self._path_filter(url)
 
     def _put_urls_from_resp(self, resp):
         try:
-            for url, depth in resp.html.find_all_links():
-                url = self._new_url(url, depth = depth)
+            for url in resp.html.find_all_links():
+                url = self._new_url(url, depth = resp.depth)
                 self.put_url(url)
         except TypeError:
             pass
@@ -164,18 +195,27 @@ class Crabs:
         try:
             resp = handler.execute()
             self._put_urls_from_resp(resp)
-        except ClientConnError:
-            self.log.exception("ClientConnError:{0}".format(handler.url))
+            self._scraped_count += 1
         except HttpError as e:
-            self.log.exception("HttpError(0):{1}".format(e, handler.url))
+            self.log.warning("HttpError({0}):{1}".format(e, handler.url))
+        except ClientTooManyRedirects as e:
+            self.log.warning(e)
+        except HttpConnError as e:
+            self.log.warning(e)
+
+    def report(self):
+        url_pool_size = self._urls.qsize()
+        print("URL Pool Size: {0} - Scraped: {1}".format(url_pool_size, self._scraped_count), end="\r")
 
     def _route_loop(self):
         while True:
+            self.report()
             url = self._get_url(block=False)
-            self.log.info("Scraping:{0}".format(url))
+            self.log.info("Scraping: {0}".format(url))
             handler_cls, url, method = self._routes.dispatch(url)
             if handler_cls is None:
                 handler_cls = DefaultHandler
+                method = Method.GET
             handler = handler_cls(url, method, self)
             self._exec_handler(handler)
 
@@ -191,4 +231,5 @@ class Crabs:
         self.shutdown()
 
     def shutdown(self, wait=True):
-        self._executor.shutdown(wait)
+        if self._executor is not None:
+            self._executor.shutdown(wait)
