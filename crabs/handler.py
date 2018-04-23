@@ -1,7 +1,7 @@
 import re, json
-from .url import URL
+from .client.url import URL
 from .client.request import Request
-from .parser import HTMLParser, JSONParser, StrParser
+from .client.client import NotSuportMethodExp, HttpError
 from .options import Method
 
 class Handler:
@@ -33,11 +33,11 @@ class Handler:
         req = Request(self.method, self.url, 
                     self._data, self._headers)
         resp = self._crabs.client.send(req)
-        if not resp.ok:
-            raise HttpError(resp.reason)
         return resp
     
     def execute(self):
+        if not self._resp.ok:
+            raise HttpError("[{0}] {1}".format(self._resp.status, self._resp.reason))
         if self.method == Method.GET:
             self.get(self._resp)
         elif self.method == Method.POST:
@@ -59,8 +59,5 @@ class Handler:
         pass
 
 class DefaultHandler(Handler):
-    def __init__(self, url, method=Method.GET):
-        super().__init__(url, method)
-
-class HttpError(Exception):
-    pass
+    def __init__(self, url, method, crabs):
+        super().__init__(url, method, crabs)
