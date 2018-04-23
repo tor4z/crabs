@@ -5,9 +5,7 @@ from .options import Travel
 _FULL_URL_RE = re.compile(r"\w+://.+")
 
 class URL:
-    def __init__(self, url, origin=None, depth=0, treval_mod=Travel.BFS):
-        if treval_mod not in Travel.All:
-            raise ValueError
+    def __init__(self, url, origin=None, depth=0, treval_mod=None):
         if url is None:
             raise TypeError
         if not isinstance(url, str):
@@ -18,9 +16,10 @@ class URL:
         self._origin = origin or url
         self._scheme = None
         self._netloc = None
+        self._path = None
         self._url_split_ = None
         self._depth = depth
-        self._travel_mod = treval_mod
+        self._travel_mod = treval_mod or Travel.BFS
         self._full_url_reobj = None
 
     def insc_depth(self):
@@ -79,6 +78,12 @@ class URL:
         if self._netloc is None:
             self._netloc = self._url_split.netloc
         return self._netloc
+
+    @property
+    def path(self):
+        if self._path is None:
+            self._path = self._url_split.path
+        return self._path
 
     @property
     def scheme(self):
