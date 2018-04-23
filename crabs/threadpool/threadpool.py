@@ -109,7 +109,7 @@ class ThreadPool:
         self._shutdown_checker()
         future = Future()
         with self._queue_lock:
-            self._queue.put((func, *args, **kwargs, future))
+            self._queue.put((func, args, kwargs, future))
         return future
 
     def _new_thread(self):
