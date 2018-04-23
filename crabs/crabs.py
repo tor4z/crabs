@@ -205,7 +205,8 @@ class Crabs:
 
     def report(self):
         url_pool_size = self._urls.qsize()
-        print("URL Pool Size: {0} - Scraped: {1}".format(url_pool_size, self._scraped_count), end="\r")
+        print("URL Pool Size: {0} - Scraped: {1} - Log: {2}".format(
+            url_pool_size, self._scraped_count, self._log.statistics), end="\r")
 
     def _route_loop(self):
         while True:
