@@ -1,5 +1,4 @@
 import re
-from .handler import Handler, DefaultHandler
 from .options import Method
 
 class Route:
@@ -19,20 +18,20 @@ class Route:
         for route in routes:
             route_para_n = len(route)
             if route_para_n >= 2:
-                self.listen(*route)
+                self.regist(*route)
             else:
                 raise RouteError            
 
     def dispatch(self, url):
         for pt, handler_cls, method in self._routes:
             if pt.match(url.raw):
-                return handler_cls(url, method) 
-        return DefaultHandler(url, Method.GET)
+                return handler_cls, url, method
+        return None, url, None
         
     def _ext_pattern(self, pattern):
         return r".+" + pattern
 
-    def listen(self, pattern, handler, method=Method.GET):
+    def regist(self, pattern, handler, method=Method.GET):
         self._check_method(method)
         self._routes.append(
             (re.compile(self._ext_pattern(pattern)), handler, method)
