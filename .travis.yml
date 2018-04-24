@@ -4,8 +4,15 @@ python:
     - 3.6
 
 script:
+    - export PYTHONPATH="$(pwd)"
     - pip install -r requirements.txt
-    - bash ./test.sh
+    - pip install codecov
+    - cd test
+    - python -m unittest discover -v --pattern=*.py
+    - cd ..
+
+after_success:
+- codecov
 
 notifications:
   email: false
