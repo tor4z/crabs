@@ -3,6 +3,8 @@ import urllib3
 from http.cookiejar import CookieJar
 from .response import Response
 from .utils import ClientHeaders
+from .url import URL
+from .request import Request
 
 class Client:
     def __init__(self, headers=None, max_redirects=None, html_parser=None):
@@ -43,6 +45,14 @@ class Client:
     def _update_req(self, req):
         self._update_req_headers(req)
         self._update_req_cookies(req)
+
+    def get(self, url, data=None):
+        req = Request("GET", URL(url), data)
+        return self.send(req)
+
+    def post(self, url, data=None):
+        req = Request("POST", URL(url), data)
+        return self.send(req)
 
     def send(self, req):
         self._update_req(req)
