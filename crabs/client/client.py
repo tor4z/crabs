@@ -4,13 +4,28 @@ from http.cookiejar import CookieJar
 from .response import Response
 
 class Client:
-    def __init__(self, headers, max_redirects=None):
+    def __init__(self, headers=None, max_redirects=None):
         self._session = requests.Session()
         self._headers = headers
         self._max_redirects = max_redirects
         self._cookies = requests.utils.cookiejar_from_dict({})
         if self._max_redirects is not None:
             self._session.max_redirects = self._max_redirects
+
+    def set_headers(self, headers):
+        if not isinstance(headers, dict):
+            raise TypeError("Dict required.")
+        self._headers = headers
+
+    def update_headers(self, headers):
+        if not isinstance(headers, dict):
+            raise TypeError("Dict required.")
+        self._headers.update(headers)
+    
+    def set_max_redirects(self, max_redirects):
+        if max_redirects < 1:
+            raise ValueError("Max redirects should be greater than 0.")
+        self._max_redirects = max_redirects
 
     def _update_req_headers(self, req):
         req.update_headers(self._headers)
