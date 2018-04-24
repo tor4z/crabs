@@ -28,7 +28,7 @@ class URLPool:
             if not isinstance(netlocs, list):
                 raise TypeError("List required.")
             for netloc in netlocs:
-                netloc = re.compile(re.sub(r"\*", "\w*?" ,netloc))
+                netloc = re.compile(re.sub(r"\*", "[a-zA-Z0-9_]*?" ,netloc))
                 self._allow_netlocs_re.append(netloc)
 
     def set_disallow_path(self, paths):
@@ -36,7 +36,7 @@ class URLPool:
             if not isinstance(paths, list):
                 raise TypeError("List required.")
             for path in paths:
-                path = re.compile(re.sub(r"\*", "\w*" ,path))
+                path = re.compile(re.sub(r"\*", ".*" ,path))
                 self._disallow_paths_re.append(path)
 
     def set_treval_mod(self, mod):
@@ -62,13 +62,14 @@ class URLPool:
 
     def put_url(self, url):
         if isinstance(url, URL):
-            if not self._check_depth(url) or not self._url_filter(url):
-                return
+            pass
         elif isinstance(url, str):
             url = self.new_url(url)
         else:
             raise TypeError
-        self._urls.put(url)
+
+        if self._check_depth(url) and self._url_filter(url):
+            self._urls.put(url)
 
     def get_url(self, *args, **kwargs):
         try:
