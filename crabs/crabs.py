@@ -111,7 +111,7 @@ class Crabs:
 
     def _route_loop(self):
         while True:
-            url = self._url_pool.get_url(block=True, timeout=10)
+            url = self._url_pool.get_url(block=True)
             if self._enable_threadpool:
                 self.executor.submit(self._exec_route, url)
             else:
