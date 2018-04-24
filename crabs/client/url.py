@@ -91,6 +91,10 @@ class URL:
             self._scheme = self._url_split.scheme
         return self._scheme
 
+    @property
+    def host(self):
+        return urljoin(self._origin, "/")
+
     @classmethod
     def urljoin(cls, origin, url):
         if url is None:
