@@ -26,7 +26,7 @@ class Future:
 
     @property
     def _result(self):
-        return self.get_result()
+        return self._get_result()
 
     def add_callback(self, func):
         self._has_callback = True
@@ -40,9 +40,6 @@ class Future:
 
     def __delattr__(self, name):
         raise FutureExp("This object cann't delete attribute.")
-
-    def __setattr__(self, name, value):
-        raise FutureExp("This object cann't set attribute.")
 
     def __getattr__(self, name):
         if hasattr(self._result, name):
@@ -60,7 +57,7 @@ class _Thread(threading.Thread):
     def __init__(self, thread_pool, name=None):
         self._name = name
         self._thread_pool = thread_pool
-        super().__init__(name=self._name)
+        super().__init__(name = self._name)
 
     def run(self):
         while True:
@@ -74,7 +71,7 @@ class _Thread(threading.Thread):
                 return
                 
 class ThreadPool:
-    def __init__(self, max_size=None, queue_cls=None):
+    def __init__(self, max_size=None, queue_cls=None, logger=None):
         if max_size is None:
             max_size = ((os.cpu_count() or 1) * 5)
         self._max_size = max_size
@@ -87,40 +84,54 @@ class ThreadPool:
         self._shutdown_lock = threading.RLock()
         self._shutdown = False
         self._queue_lock = threading.RLock()
+        self._logger = logger
+        self.log_info("Thread pool initiated")
+
+    def log_info(self, *args, **kwargs):
+        if self._logger is not None:
+            self._logger.info(*args, **kwargs)
+
+    def log_debug(self, *args, **kwargs):
+        if self._logger is not None:
+            self._logger.debug(*args, **kwargs)
+
+    @property
+    def statistics(self):
+        pass
 
     @property
     def current_size(self):
         return len(self._pool)
 
-    def get_task(self, *args):
-        with self._queue_lock:
-            task =  self._queue.get(*args)
-        return task
+    def get_task(self, *args, **kwargs):
+        return  self._queue.get(*args, **kwargs)
 
     def put_task(self, task):
-        with self._queue_lock:
-            self._queue.put(task)
+        self._queue.put(task)
 
     def _shutdown_checker(self):
         if self._shutdown:
             raise ThreadPoolExp("ThreadPool already shutdown.")
 
     def submit(self, func, *args, **kwargs):
+        self.log_debug("Submited function {0}".format(func.__name__))
         self._shutdown_checker()
         future = Future()
-        with self._queue_lock:
-            self._queue.put((func, args, kwargs, future))
+        self.put_task((func, args, kwargs, future))
+        self._new_thread()
         return future
 
     def _new_thread(self):
         self._shutdown_checker()
-        if self._max_size <= self.current_size:
-            t = threading.Thread(target=_worker, args=(self._queue))
+        if self._max_size >= self.current_size:
+            self.log_debug("Start a new thread.")
+            t = _Thread(thread_pool = self)
             t.setDaemon(True)
             t.start()
             self._pool.append(t)
 
     def shutdown(self, wait=True):
+        self.log_info("Shutdown thread pool.")
         with self._shutdown_lock:
             self._shutdown = True
             self.put_task(None)
@@ -129,14 +140,20 @@ class ThreadPool:
                 t.join()
 
 class ThreadPoolExecutor:
-    def __init__(self, max_size=None, queue_cls=None):
-        self._threadpool = ThreadPool(max_size=max_size, queue_cls=queue_cls)
+    def __init__(self, max_size=None, queue_cls=None, logger=None):
+        self._threadpool = ThreadPool(max_size=max_size, 
+                                      queue_cls=queue_cls, 
+                                      logger=logger)
 
     def __enter__(self):
         pass
 
     def __exit__(self, ex_type, ex_value, traceback):
         self._threadpool.shutdown()
+
+    @property
+    def statistics(self):
+        return self._threadpool.statistics
 
     def submit(self, func, *args, **kwargs):
         return self._threadpool.submit(func, *args, **kwargs)

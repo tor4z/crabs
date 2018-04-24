@@ -28,11 +28,14 @@ class Crabs:
         self._logger_file = None
         self._logger = None
         self._client = None
-        self._executor = None
         self._scraped_count = 0
         self._max_redirects = None
         self._client_headers = {}
-    
+        self._threadpool_executor = None
+        self._enable_threadpool = False
+        self._threadpool_max_size = None
+        self._threadpool_queue_cls = None
+
     @property
     def _routes(self):
         if self._routes_ is None:
@@ -92,10 +95,19 @@ class Crabs:
         self._seed = seeds
 
     def set_executor(self, max_size=None, queue_cls=None):
-        self._executor = ThreadPoolExecutor(max_size, queue_cls, self.logger)
+        self._enable_threadpool = True
+        self._threadpool_max_size = max_size
+        self._threadpool_queue_cls = queue_cls
 
     def _new_url(self, url, origin=None, depth=0):
         return URL(url, origin, depth, self._travel_mod)
+
+    def _init_threadpool(self):
+        if self._threadpool_executor is None and self._enable_threadpool:
+            self._threadpool_executor = ThreadPoolExecutor(
+                                        self._threadpool_max_size, 
+                                        self._threadpool_queue_cls,
+                                        self.logger)
 
     def _init_seed(self):
         for url in self._seed:
@@ -113,9 +125,10 @@ class Crabs:
         
     @property
     def executor(self):
-        if self._executor is None:
-            self.set_executor()
-        return self._executor
+        if self._enable_threadpool:
+            return self._threadpool_executor
+        else:
+            raise RuntimeError("Threadpool not enabled.")
     
     @property
     def client(self):
@@ -132,6 +145,7 @@ class Crabs:
             self._init_seed()
             self._init_logger()
             self._init_default_client_headers()
+            self._init_threadpool()
             self._initialized = True
 
     def _check_depth(self, url):
@@ -203,13 +217,11 @@ class Crabs:
             self.logger.warning(e)
 
     def _report(self, url):
-        url_pool_size = self._urls.qsize()
         self.logger.info("Scraping({0}): {1}".format(url.depth, url))
-        print("URL Pool Size: {0} - Scraped: {1} - Log: {2}".format(
-            url_pool_size, self._scraped_count, self._log.statistics), end="\r")
+        print("URL : {0} - Scraped: {1} - Log: {2}".format(
+                self._urls.qsize(), self._scraped_count, self._logger.statistics), end="\r")
 
-    def _exec_route(self):
-        url = self._get_url(block=False)
+    def _exec_route(self, url):
         self._report(url)
         handler_cls, url, method = self._routes.dispatch(url)
         if handler_cls is None:
@@ -220,7 +232,11 @@ class Crabs:
 
     def _route_loop(self):
         while True:
-            self.executor.submit(self._exec_route)
+            url = self._get_url(block=True, timeout=10)
+            if self._enable_threadpool:
+                self.executor.submit(self._exec_route, url)
+            else:
+                self._exec_route(url)
 
     def run(self):
         try:
@@ -234,5 +250,5 @@ class Crabs:
         self.shutdown()
 
     def shutdown(self, wait=True):
-        if self._executor is not None:
-            self._executor.shutdown(wait)
+        if self._enable_threadpool:
+            self.executor.shutdown(wait)
