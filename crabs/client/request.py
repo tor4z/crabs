@@ -26,19 +26,18 @@ class Request:
 
     def _set_header(self):
         self._headers["Host"] = self._url.netloc
-        self._headers["Referer"] = self._url.netloc
+        self._headers["Referer"] = self._url.host
+        self._headers["Origin"] = self._url.host
 
     @property
     def prepare(self):
-        if self._prepare is None:
-            self._set_header()
-            req = requests.Request(method = self._method, 
-                                    url = self._url.raw, 
-                                    data = self._data, 
-                                    cookies = self._cookies,
-                                    headers = self._headers)
-            self._prepare = req.prepare()
-        return self._prepare
+        self._set_header()
+        req = requests.Request(method = self._method, 
+                                url = self._url.raw, 
+                                data = self._data, 
+                                cookies = self._cookies,
+                                headers = self._headers)
+        return req.prepare()
 
     @property
     def url(self):
