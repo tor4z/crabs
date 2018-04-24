@@ -22,7 +22,7 @@ class Crabs:
         self._allow_netlocs_re = []
         self._disallow_paths_re = []
         self._initialized = False
-        self.__name = self.__class__.__name__
+        self._logger_name = self.__class__.__name__
         self._logger_format = None
         self._logger_level = None
         self._logger_file = None
@@ -130,7 +130,7 @@ class Crabs:
     def initialize(self):
         if not self._initialized:
             self._init_seed()
-            self._init_log()
+            self._init_logger()
             self._init_default_client_headers()
             self._initialized = True
 
