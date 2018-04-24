@@ -72,7 +72,9 @@ class URLPool:
 
     def get_url(self, *args, **kwargs):
         try:
-            return self._urls.get(*args, **kwargs)
+            url = self._urls.get(*args, **kwargs)
+            self._urls.task_done()
+            return url
         except:
             raise URLPoolEmpty
 

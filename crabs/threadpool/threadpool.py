@@ -66,6 +66,7 @@ class _Thread(threading.Thread):
                 func, args, kwargs, future = task
                 result = func(*args, **kwargs)
                 future._set_result(result)
+                self._thread_pool.task_done()
             else:
                 self._thread_pool.put_task(None)
                 return
@@ -110,6 +111,9 @@ class ThreadPool:
     @property
     def task_size(self):
         return self._queue.qsize()
+
+    def task_done(self):
+        self._queue.task_done()
 
     @property
     def current_size(self):
