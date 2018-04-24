@@ -83,7 +83,6 @@ class ThreadPool:
         self._queue = queue_cls()
         self._shutdown_lock = threading.RLock()
         self._shutdown = False
-        self._queue_lock = threading.RLock()
         self._logger = logger
         self.log_info("Thread pool initiated")
 
