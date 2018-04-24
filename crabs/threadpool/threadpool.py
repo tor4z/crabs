@@ -114,7 +114,6 @@ class ThreadPool:
             raise ThreadPoolExp("ThreadPool already shutdown.")
 
     def submit(self, func, *args, **kwargs):
-        self.log_debug("Submited function {0}".format(func.__name__))
         self._shutdown_checker()
         future = Future()
         self.put_task((func, args, kwargs, future))
