@@ -15,12 +15,12 @@ class Client:
     def _update_req_headers(self, req):
         req.update_headers(self._headers)
 
-    def _update_req_cookie(self, req):
-        req.set_cookies(self._cookies)
+    def _update_req_cookies(self, req):
+        req.set_cookies(self.cookies)
 
     def _update_req(self, req):
         self._update_req_headers(req)
-        self._update_req_cookie(req)
+        self._update_req_cookies(req)
 
     def send(self, req):
         self._update_req(req)
@@ -37,8 +37,6 @@ class Client:
             raise HttpConnError(e)
         except urllib3.exceptions.MaxRetryError as e:
             raise HttpConnError(e)
-        
-
 
     def update_cookies(self, cookies):
         """
