@@ -186,7 +186,7 @@ class Crabs:
     def _put_urls_from_resp(self, resp):
         try:
             for url in resp.html.find_all_links():
-                url = self._new_url(url, depth = resp.depth)
+                url = self._new_url(url, depth = resp.depth + 1)
                 self.put_url(url)
         except TypeError:
             pass
@@ -203,16 +203,16 @@ class Crabs:
         except HttpConnError as e:
             self.log.warning(e)
 
-    def report(self):
+    def report(self, url):
         url_pool_size = self._urls.qsize()
+        self.log.info("Scraping({0}): {1}".format(url.depth, url))
         print("URL Pool Size: {0} - Scraped: {1} - Log: {2}".format(
             url_pool_size, self._scraped_count, self._log.statistics), end="\r")
 
     def _route_loop(self):
         while True:
-            self.report()
             url = self._get_url(block=False)
-            self.log.info("Scraping: {0}".format(url))
+            self.report(url)
             handler_cls, url, method = self._routes.dispatch(url)
             if handler_cls is None:
                 handler_cls = DefaultHandler
