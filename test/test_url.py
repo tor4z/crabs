@@ -1,5 +1,5 @@
 import unittest
-from crabs.client import URL
+from crabs.http_client import URL
 
 class TestURL(unittest.TestCase):
     _netloc = "www.host.com"
