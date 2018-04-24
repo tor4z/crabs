@@ -18,16 +18,20 @@ class Log:
         }
 
     def set_name(self, name):
-        self._name = name
+        if name is not None:
+            self._name = name
 
     def set_format(self, format):
-        self._format = format
+        if format is not None:
+            self._format = format
 
     def set_level(self, level):
-        self._level = level
+        if level is not None:
+            self._level = level
 
     def set_file(self, file):
-        self._file = file
+        if file is not None:
+            self._file = file
 
     @property
     def _logger(self):

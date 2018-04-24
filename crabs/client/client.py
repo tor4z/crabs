@@ -17,15 +17,17 @@ class Client:
         self._headers = headers
 
     def update_headers(self, headers):
-        if not isinstance(headers, dict):
-            raise TypeError("Dict required.")
-        self._headers.update(headers)
+        if headers is not None:
+            if not isinstance(headers, dict):
+                raise TypeError("Dict required.")
+            self._headers.update(headers)
     
     def set_max_redirects(self, max_redirects):
-        if max_redirects < 1:
-            raise ValueError("Max redirects should be greater than 0.")
-        self._max_redirects = max_redirects
-        self._session.max_redirects = self._max_redirects
+        if max_redirects is not None:
+            if max_redirects < 1:
+                raise ValueError("Max redirects should be greater than 0.")
+            self._max_redirects = max_redirects
+            self._session.max_redirects = self._max_redirects
 
     def _update_req_headers(self, req):
         req.update_headers(self._headers)
