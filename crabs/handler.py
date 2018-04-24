@@ -1,7 +1,7 @@
 import re, json
-from .client.url import URL
-from .client.request import Request
-from .client.client import NotSuportMethodExp, HttpError
+from .http_client.url import URL
+from .http_client.request import Request
+from .http_client.client import NotSuportMethodExp, HttpError
 from .options import Method
 
 class Handler:

@@ -1,6 +1,6 @@
 import re
 from queue import PriorityQueue, Empty
-from .client.url import URL
+from .http_client.url import URL
 from .options import Travel, Method
 
 class URLPool:

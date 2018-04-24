@@ -4,12 +4,12 @@ from .logs import Log
 from .handler import DefaultHandler
 from .url_pool import URLPool, URLPoolEmpty
 from .threadpool.threadpool import ThreadPoolExecutor, ExecutorSetTwice
-from .client.url import URL, URLError
-from .client.utils import ClientHeaders
-from .client.client import (Client, 
-                            HttpError, 
-                            ClientTooManyRedirects, 
-                            HttpConnError)
+from .http_client.url import URL, URLError
+from .http_client.utils import ClientHeaders
+from .http_client.client import (Client, 
+                                HttpError, 
+                                ClientTooManyRedirects, 
+                                HttpConnError)
 
 class Crabs:
     def __init__(self):

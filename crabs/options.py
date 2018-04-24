@@ -1,1 +1,1 @@
-from .client.options import *
+from .http_client.options import *
