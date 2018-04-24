@@ -2,11 +2,12 @@ import requests
 import urllib3
 from http.cookiejar import CookieJar
 from .response import Response
+from .utils import ClientHeaders
 
 class Client:
     def __init__(self, headers=None, max_redirects=None):
         self._session = requests.Session()
-        self._headers = headers
+        self._headers = headers or ClientHeaders
         self._max_redirects = max_redirects
         self._cookies = requests.utils.cookiejar_from_dict({})
         if self._max_redirects is not None:
