@@ -6,14 +6,7 @@ class Log:
         self._format = format or "[%(levelname)s] %(asctime)s - %(name)s - %(message)s"
         self._level = level or logging.INFO
         self._file = file
-        self._logger = logging.getLogger(self._name)
-        if self._file is None:
-            lh = logging.StreamHandler()
-        else:
-            lh = logging.FileHandler(self._file)
-        lh.setFormatter(logging.Formatter(self._format))
-        self._logger.setLevel(self._level)
-        self._logger.addHandler(lh)
+        self._logger_ = None
         self._statistics = {
             "Info": 0,
             "Debug": 0,
@@ -23,6 +16,31 @@ class Log:
             "Critical": 0,
             "Exception": 0
         }
+
+    def set_name(self, name):
+        self._name = name
+
+    def set_format(self, format):
+        self._format = format
+
+    def set_level(self, level):
+        self._level = level
+
+    def set_file(self, file):
+        self._file = file
+
+    @property
+    def _logger(self):
+        if self._logger_ is None:
+            self._logger_ = logging.getLogger(self._name)
+            if self._file is None:
+                lh = logging.StreamHandler()
+            else:
+                lh = logging.FileHandler(self._file)
+            lh.setFormatter(logging.Formatter(self._format))
+            self._logger_.setLevel(self._level)
+            self._logger_.addHandler(lh)
+        return self._logger_
     
     @property
     def statistics(self):
