@@ -71,7 +71,7 @@ class _Thread(threading.Thread):
                 return
                 
 class ThreadPool:
-    def __init__(self, max_size=None, queue_cls=None, logger=None):
+    def __init__(self, max_size=None, queue_cls=None, task_size=None, logger=None):
         if max_size is None:
             max_size = ((os.cpu_count() or 1) * 5)
         self._max_size = max_size
@@ -80,7 +80,8 @@ class ThreadPool:
         self._pool = []
         if queue_cls is None:
             queue_cls = Queue
-        self._queue = queue_cls()
+        self._queue_max = task_size or self._max_size * 5
+        self._queue = queue_cls(self._queue_max)
         self._shutdown_lock = threading.RLock()
         self._shutdown = False
         self._logger = logger
@@ -99,6 +100,18 @@ class ThreadPool:
         pass
 
     @property
+    def task_empty(self):
+        return self.task_size == 0
+
+    @property
+    def task_full(self):
+        return self.task_size >= self._queue_max
+
+    @property
+    def task_size(self):
+        return self._queue.qsize()
+
+    @property
     def current_size(self):
         return len(self._pool)
 
@@ -106,7 +119,7 @@ class ThreadPool:
         return  self._queue.get(*args, **kwargs)
 
     def put_task(self, task):
-        self._queue.put(task)
+        self._queue.put(task, block=True)
 
     def _shutdown_checker(self):
         if self._shutdown:
@@ -138,9 +151,10 @@ class ThreadPool:
                 t.join()
 
 class ThreadPoolExecutor:
-    def __init__(self, max_size=None, queue_cls=None, logger=None):
+    def __init__(self, max_size=None, queue_cls=None, task_size=None, logger=None):
         self._threadpool = ThreadPool(max_size=max_size, 
-                                      queue_cls=queue_cls, 
+                                      queue_cls=queue_cls,
+                                      task_size = task_size,
                                       logger=logger)
 
     def __enter__(self):
@@ -166,4 +180,7 @@ class ThreadExp(Exception):
     pass
 
 class ThreadPoolExp(Exception):
+    pass
+
+class ExecutorSetTwice(Exception):
     pass

@@ -3,7 +3,7 @@ from .options import Travel, Method
 from .logs import Log
 from .handler import DefaultHandler
 from .url_pool import URLPool, URLPoolEmpty
-from .threadpool.threadpool import ThreadPoolExecutor
+from .threadpool.threadpool import ThreadPoolExecutor, ExecutorSetTwice
 from .client.url import URL, URLError
 from .client.utils import ClientHeaders
 from .client.client import (Client, 
@@ -17,10 +17,7 @@ class Crabs:
         self._url_pool = URLPool()
         self.logger = Log(self.__class__.__name__)
         self.client = Client()
-        self._threadpool_executor = None
         self._enable_threadpool = False
-        self._threadpool_max_size = None
-        self._threadpool_queue_cls = None
         self._initialized = False
         self._scraped_count = 0
 
@@ -51,17 +48,18 @@ class Crabs:
             raise TypeError("List required.")
         self._url_pool.put_urls(urls)
 
-    def set_executor(self, max_size=None, queue_cls=None):
+    def set_executor(self, max_size=None, queue_cls=None, task_size=None):
+        if self._enable_threadpool:
+            raise ExecutorSetTwice("Executor can not set twice.")
         self._enable_threadpool = True
         self._threadpool_max_size = max_size
         self._threadpool_queue_cls = queue_cls
-
-    def _init_threadpool(self):
-        if self._threadpool_executor is None and self._enable_threadpool:
-            self._threadpool_executor = ThreadPoolExecutor(
-                                        self._threadpool_max_size, 
-                                        self._threadpool_queue_cls,
-                                        self.logger)
+        self._threadpool_task_size = task_size
+        self._threadpool_executor = ThreadPoolExecutor(
+                                    self._threadpool_max_size, 
+                                    self._threadpool_queue_cls,
+                                    self._threadpool_task_size,
+                                    self.logger)
 
     @property
     def executor(self):
@@ -72,7 +70,6 @@ class Crabs:
 
     def initialize(self):
         if not self._initialized:
-            self._init_threadpool()
             self._initialized = True
 
     def _put_urls_from_resp(self, resp):
