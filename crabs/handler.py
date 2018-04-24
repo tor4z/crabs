@@ -27,6 +27,10 @@ class Handler:
         if not isinstance(data, dict):
             raise TypeError("Dict required.")
         self._data = data
+    
+    @property
+    def http(self):
+        return self._crabs.client
 
     @property
     def _resp(self):
