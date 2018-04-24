@@ -4,9 +4,10 @@ from .options import TextType
 from .parser import HTMLParser
 
 class Response:
-    def __init__(self, resp, url):
+    def __init__(self, resp, url, html_parser=None):
         self._url = url
         self._resp = resp
+        self._html_parser = html_parser
         self._text = None
         self._json = None
         self._is_json = True
@@ -79,7 +80,7 @@ class Response:
     def html(self):
         if self._html is None:
             if self.text_type == TextType.HTML:
-                self._html = HTMLParser(self.text, self.url)
+                self._html = HTMLParser(self.text, self.url, self._html_parser)
             else:
                 raise TypeError("{0} is not a html page.".format(self.url))
         return self._html

@@ -17,8 +17,8 @@ class Parser:
         raise NotImplemented
 
 class HTMLParser(Parser):
-    def __init__(self, text, url, parser = "html.parser"):
-        self._parser = parser
+    def __init__(self, text, url, parser=None):
+        self._parser = parser or "html.parser"
         self._is_html = None
         self._soup_ = None
         self._url = url

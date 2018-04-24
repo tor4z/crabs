@@ -5,16 +5,21 @@ from .response import Response
 from .utils import ClientHeaders
 
 class Client:
-    def __init__(self, headers=None, max_redirects=None):
+    def __init__(self, headers=None, max_redirects=None, html_parser=None):
         self._session = requests.Session()
         self._headers = headers or ClientHeaders
         self._max_redirects = max_redirects
+        self._html_parser = html_parser
         self._cookies = requests.utils.cookiejar_from_dict({})
 
     def set_headers(self, headers):
         if not isinstance(headers, dict):
             raise TypeError("Dict required.")
         self._headers = headers
+
+    def set_html_parser(self, html_parser):
+        if html_parser is not None:
+            self._html_parser = html_parser
 
     def update_headers(self, headers):
         if headers is not None:
@@ -44,7 +49,7 @@ class Client:
         try:
             resp = self._session.send(req.prepare)
             self.update_cookies(resp.cookies)
-            return Response(resp, req.url)
+            return Response(resp, req.url, self._html_parser)
         except requests.ConnectionError:
             raise HttpConnError("Connect to {0} error.".format(req.url))
         except requests.exceptions.TooManyRedirects:

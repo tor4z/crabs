@@ -24,9 +24,10 @@ class Crabs:
         self._initialized = False
         self._scraped_count = 0
 
-    def set_http_client(self, headers=None, max_redirects=None):
+    def set_http_client(self, headers=None, max_redirects=None, html_parser=None):
         self.client.update_headers(headers)
         self.client.set_max_redirects(max_redirects)
+        self.client.set_html_parser(html_parser)
 
     def set_logger(self, name=None, format=None, level=None, file=None):
         self.logger.set_name(name)
