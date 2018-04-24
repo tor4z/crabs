@@ -10,8 +10,6 @@ class Client:
         self._headers = headers or ClientHeaders
         self._max_redirects = max_redirects
         self._cookies = requests.utils.cookiejar_from_dict({})
-        if self._max_redirects is not None:
-            self._session.max_redirects = self._max_redirects
 
     def set_headers(self, headers):
         if not isinstance(headers, dict):
@@ -27,6 +25,7 @@ class Client:
         if max_redirects < 1:
             raise ValueError("Max redirects should be greater than 0.")
         self._max_redirects = max_redirects
+        self._session.max_redirects = self._max_redirects
 
     def _update_req_headers(self, req):
         req.update_headers(self._headers)
