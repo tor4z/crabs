@@ -22,11 +22,11 @@ class Crabs:
         self._allow_netlocs_re = []
         self._disallow_paths_re = []
         self._initialized = False
-        self._log_name = self.__class__.__name__
-        self._log_format = None
-        self._log_level = None
-        self._log_file = None
-        self._log = None
+        self.__name = self.__class__.__name__
+        self._logger_format = None
+        self._logger_level = None
+        self._logger_file = None
+        self._logger = None
         self._client = None
         self._executor = None
         self._scraped_count = 0
@@ -47,17 +47,17 @@ class Crabs:
     def set_client_max_redirects(self, max_redirects):
         self._max_redirects = max_redirects
 
-    def set_log_name(self, name):
-        self._log_name = name
+    def set_logger_name(self, name):
+        self._logger_name = name
     
-    def set_log_format(self, format):
-        self._log_format = format
+    def set_logger_format(self, format):
+        self._logger_format = format
     
-    def set_log_level(self, level):
-        self._log_level = level
+    def set_logger_level(self, level):
+        self._logger_level = level
 
-    def set_log_file(self, file):
-        self._log_file = file
+    def set_logger_file(self, file):
+        self._logger_file = file
 
     def set_allow_netloc(self, netlocs):
         if not isinstance(netlocs, list):
@@ -92,8 +92,7 @@ class Crabs:
         self._seed = seeds
 
     def set_executor(self, max_size=None, queue_cls=None):
-        self._executor = ThreadPoolExecutor._instance(max_size, 
-                                                      queue_cls)
+        self._executor = ThreadPoolExecutor(max_size, queue_cls, self.logger)
 
     def _new_url(self, url, origin=None, depth=0):
         return URL(url, origin, depth, self._travel_mod)
@@ -104,10 +103,10 @@ class Crabs:
                 raise URLError
             self.put_url(self._new_url(url))
 
-    def _init_log(self):
-        if self._log is None:
-            self._log = Log(self._log_name, 
-            self._log_format, self._log_level, self._log_file)
+    def _init_logger(self):
+        if self._logger is None:
+            self._logger = Log(self._logger_name, 
+            self._logger_format, self._logger_level, self._logger_file)
 
     def _init_default_client_headers(self):
         self.update_client_headers(ClientHeaders)
@@ -125,8 +124,8 @@ class Crabs:
         return self._client
 
     @property
-    def log(self):
-        return self._log
+    def logger(self):
+        return self._logger
 
     def initialize(self):
         if not self._initialized:
@@ -197,37 +196,40 @@ class Crabs:
             self._put_urls_from_resp(resp)
             self._scraped_count += 1
         except HttpError as e:
-            self.log.warning("HttpError({0}):{1}".format(e, handler.url))
+            self.logger.warning("HttpError({0}):{1}".format(e, handler.url))
         except ClientTooManyRedirects as e:
-            self.log.warning(e)
+            self.logger.warning(e)
         except HttpConnError as e:
-            self.log.warning(e)
+            self.logger.warning(e)
 
-    def report(self, url):
+    def _report(self, url):
         url_pool_size = self._urls.qsize()
-        self.log.info("Scraping({0}): {1}".format(url.depth, url))
+        self.logger.info("Scraping({0}): {1}".format(url.depth, url))
         print("URL Pool Size: {0} - Scraped: {1} - Log: {2}".format(
             url_pool_size, self._scraped_count, self._log.statistics), end="\r")
 
+    def _exec_route(self):
+        url = self._get_url(block=False)
+        self._report(url)
+        handler_cls, url, method = self._routes.dispatch(url)
+        if handler_cls is None:
+            handler_cls = DefaultHandler
+            method = Method.GET
+        handler = handler_cls(url, method, self)
+        self._exec_handler(handler)
+
     def _route_loop(self):
         while True:
-            url = self._get_url(block=False)
-            self.report(url)
-            handler_cls, url, method = self._routes.dispatch(url)
-            if handler_cls is None:
-                handler_cls = DefaultHandler
-                method = Method.GET
-            handler = handler_cls(url, method, self)
-            self._exec_handler(handler)
+            self.executor.submit(self._exec_route)
 
     def run(self):
         try:
             self.initialize()
             self._route_loop()
         except KeyboardInterrupt:
-            self.log.info("Exit.")
+            self.logger.info("Exit.")
         except Empty:
-            self.log.fatal("URL set empty.")
+            self.logger.fatal("URL set empty.")
 
         self.shutdown()
 
