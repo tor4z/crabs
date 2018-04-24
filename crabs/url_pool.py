@@ -15,6 +15,14 @@ class URLPool:
     def size(self):
         return self._urls.qsize()
 
+    def clear(self):
+        while not self._urls.empty():
+            try:
+                self._urls.get(False)
+            except Empty:
+                continue
+            self._urls.task_done()
+
     def set_allow_netloc(self, netlocs):
         if netlocs is not None:
             if not isinstance(netlocs, list):
