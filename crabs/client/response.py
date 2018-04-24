@@ -13,7 +13,6 @@ class Response:
         self._ok = None
         self._text_type = None
         self._html = None
-        self._depth = self._url.depth
         self._status = None
         self._reason = None
         self._close = False
