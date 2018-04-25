@@ -130,8 +130,13 @@ class Crabs:
             self.logger.info("Keyboard Interrupt.")
         except URLPoolEmpty:
             self.logger.fatal("URLPool empty.")
-        self.shutdown()
-        self.logger.info("Exit.")
+        
+        try:
+            self.shutdown()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            self.logger.info("Exit.")
 
     def shutdown(self, wait=True):
         if self._enable_threadpool:
