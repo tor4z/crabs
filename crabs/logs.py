@@ -17,6 +17,15 @@ class Log:
             "Exception": 0
         }
 
+    @property
+    def report(self):
+        report = ""
+        for key in self._statistics:
+            val = self._statistics[key]
+            if val > 0:
+                report += "{0}({1})".format(key, val)
+        return report
+
     def set_name(self, name):
         if name is not None:
             self._name = name
@@ -45,15 +54,6 @@ class Log:
             self._logger_.setLevel(self._level)
             self._logger_.addHandler(lh)
         return self._logger_
-    
-    @property
-    def statistics(self):
-        string = ""
-        for key in self._statistics:
-            val = self._statistics[key]
-            if val > 0:
-                string += "{0}({1}) ".format(key, val)
-        return string
 
     def info(self, *args, **kwargs):
         self._statistics["Info"] += 1

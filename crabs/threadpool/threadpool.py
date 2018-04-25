@@ -97,8 +97,9 @@ class ThreadPool:
             self._logger.debug(*args, **kwargs)
 
     @property
-    def statistics(self):
-        pass
+    def report(self):
+        return "task_size({0})thread_size({1})".format(
+            self.task_size, self.current_size)
 
     @property
     def task_empty(self):
@@ -168,8 +169,8 @@ class ThreadPoolExecutor:
         self._threadpool.shutdown()
 
     @property
-    def statistics(self):
-        return self._threadpool.statistics
+    def report(self):
+        return self._threadpool.report
 
     def submit(self, func, *args, **kwargs):
         return self._threadpool.submit(func, *args, **kwargs)

@@ -13,6 +13,19 @@ class Client:
         self._max_redirects = max_redirects
         self._html_parser = html_parser
         self._cookies = requests.utils.cookiejar_from_dict({})
+        self._statistics = {
+            "Total": 0,
+            "Succeed": 0,
+            "Failed": 0
+        }
+
+    @property
+    def report(self):
+        self._statistics["Failed"] = self._statistics["Total"] - self._statistics["Succeed"]
+        report = "Http:"
+        for key in self._statistics:
+            report += "{0}({1})".format(key, self._statistics[key])
+        return report
 
     def set_headers(self, headers):
         if not isinstance(headers, dict):
@@ -59,6 +72,7 @@ class Client:
         try:
             resp = self._session.send(req.prepare)
             self.update_cookies(resp.cookies)
+            self._statistics["Succeed"] += 1
             return Response(resp, req.url, self._html_parser)
         except requests.ConnectionError:
             raise HttpConnError("Connect to {0} error.".format(req.url))
@@ -69,6 +83,8 @@ class Client:
             raise HttpConnError(e)
         except urllib3.exceptions.MaxRetryError as e:
             raise HttpConnError(e)
+        finally:
+            self._statistics["Total"] += 1
 
     def update_cookies(self, cookies):
         """

@@ -23,6 +23,10 @@ class URLPool:
                 continue
             self._urls.task_done()
 
+    @property
+    def report(self):
+        return "url_size({0})".format(self.size)
+
     def set_allow_netloc(self, netlocs):
         if netlocs is not None:
             if not isinstance(netlocs, list):

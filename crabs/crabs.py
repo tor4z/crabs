@@ -21,6 +21,10 @@ class Crabs:
         self._initialized = False
         self._scraped_count = 0
 
+    @property
+    def report(self):
+        return "scraped({0})".format(self._scraped_count)
+
     def set_http_client(self, headers=None, max_redirects=None, html_parser=None):
         self.client.update_headers(headers)
         self.client.set_max_redirects(max_redirects)
@@ -92,13 +96,17 @@ class Crabs:
         except HttpConnError as e:
             self.logger.warning(e)
 
-    def _report(self, url):
-        print("URL : {0} - Scraped: {1} - Log: {2}".format(
-        self._url_pool.size, self._scraped_count, self.logger.statistics), end="\r")
+    def report_collections(self):
+        reports = self.report + "|" +\
+                  self.logger.report + "|" +\
+                  self.client.report + "|" +\
+                  self._url_pool.report + "|" +\
+                  self.executor.report if self._enable_threadpool else ""
+        print(reports, end="\r")
 
     def _exec_route(self, url):
         self.logger.info("Scraping({0}): {1}".format(url.depth, url))
-        self._report(url)
+        self.report_collections()
         handler_cls, url, method = self._routes.dispatch(url)
         if handler_cls is None:
             handler_cls = DefaultHandler
