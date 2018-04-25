@@ -15,14 +15,14 @@ class Future:
         self._result_ = result
         self._done = True
         self._event.set()
+        self._callback()
 
-    def _get_result(self, *args):
-        self._wait(*args)
-        return self._val
+    def _get_result(self):
+        self._wait()
+        return self._result_
 
-    def _wait(self, *args):
-        if not self._event.is_set():
-            self._event.wait(*args)
+    def _wait(self, *args, **kwargs):
+        return self._event.wait(*args, **kwargs)
 
     @property
     def _result(self):
@@ -40,18 +40,18 @@ class Future:
 
     def __delattr__(self, name):
         raise FutureExp("This object cann't delete attribute.")
-
+    
     def __getattr__(self, name):
         if hasattr(self._result, name):
             return getattr(self._result, name)
         else:
             raise FutureExp("No attribute named ({0}).".format(name))
-
+    
     def __str__(self):
-        return self._result
+        return str(self._result)
         
     def __repr__(self):
-        return self.__str__()
+        return repr(self._result)
 
 class _Thread(threading.Thread):
     def __init__(self, thread_pool, name=None):
@@ -68,7 +68,8 @@ class _Thread(threading.Thread):
                 future._set_result(result)
                 self._thread_pool.task_done()
             else:
-                self._thread_pool.put_task(None)
+                self._thread_pool.task_done()
+                self._thread_pool._put_task(None)
                 return
                 
 class ThreadPool:
@@ -123,7 +124,7 @@ class ThreadPool:
     def get_task(self, *args, **kwargs):
         return  self._queue.get(*args, **kwargs)
 
-    def put_task(self, task):
+    def _put_task(self, task):
         self._queue.put(task, block=True)
 
     def _shutdown_checker(self):
@@ -133,7 +134,7 @@ class ThreadPool:
     def submit(self, func, *args, **kwargs):
         self._shutdown_checker()
         future = Future()
-        self.put_task((func, args, kwargs, future))
+        self._put_task((func, args, kwargs, future))
         self._new_thread()
         return future
 
@@ -150,7 +151,7 @@ class ThreadPool:
         self.log_info("Shutdowning thread pool...")
         with self._shutdown_lock:
             self._shutdown = True
-            self.put_task(None)
+            self._put_task(None)
         if wait:
             for t in self._pool:
                 t.join()
@@ -163,7 +164,7 @@ class ThreadPoolExecutor:
                                       logger=logger)
 
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, ex_type, ex_value, traceback):
         self._threadpool.shutdown()
