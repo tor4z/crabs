@@ -28,7 +28,7 @@ class URLPool:
             if not isinstance(netlocs, list):
                 raise TypeError("List required.")
             for netloc in netlocs:
-                netloc = re.compile(re.sub(r"\*", "[a-zA-Z0-9_]*?" ,netloc))
+                netloc = re.compile(re.sub(r"\*", "[a-zA-Z0-9_\-]*?" ,netloc))
                 self._allow_netlocs_re.append(netloc)
 
     def set_disallow_path(self, paths):
