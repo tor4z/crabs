@@ -72,8 +72,10 @@ class Client:
         try:
             resp = self._session.send(req.prepare)
             self.update_cookies(resp.cookies)
-            self._statistics["Succeed"] += 1
-            return Response(resp, req.url, self._html_parser)
+            resp = Response(resp, req.url, self._html_parser)
+            if resp.ok:
+                self._statistics["Succeed"] += 1
+            return resp
         except requests.ConnectionError:
             raise HttpConnError("Connect to {0} error.".format(req.url))
         except requests.exceptions.TooManyRedirects:
