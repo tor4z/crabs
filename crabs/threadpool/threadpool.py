@@ -81,7 +81,7 @@ class ThreadPool:
         self._pool = []
         if queue_cls is None:
             queue_cls = Queue
-        self._queue_max = task_size or self._max_size * 5
+        self._queue_max = task_size or self._max_size * 3
         self._queue = queue_cls(self._queue_max)
         self._shutdown_lock = threading.RLock()
         self._shutdown = False
@@ -139,7 +139,7 @@ class ThreadPool:
 
     def _new_thread(self):
         self._shutdown_checker()
-        if self._max_size >= self.current_size:
+        if self._max_size > self.current_size:
             self.log_debug("Start a new thread.")
             t = _Thread(thread_pool = self)
             t.setDaemon(True)
