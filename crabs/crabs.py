@@ -127,11 +127,11 @@ class Crabs:
             self.initialize()
             self._route_loop()
         except KeyboardInterrupt:
-            self.logger.info("Exit.")
+            self.logger.info("Keyboard Interrupt.")
         except URLPoolEmpty:
-            self.logger.fatal("URL set empty.")
-
+            self.logger.fatal("URLPool empty.")
         self.shutdown()
+        self.logger.info("Exit.")
 
     def shutdown(self, wait=True):
         if self._enable_threadpool:

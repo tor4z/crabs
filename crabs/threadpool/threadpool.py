@@ -147,7 +147,7 @@ class ThreadPool:
             self._pool.append(t)
 
     def shutdown(self, wait=True):
-        self.log_info("Shutdown thread pool.")
+        self.log_info("Shutdowning thread pool...")
         with self._shutdown_lock:
             self._shutdown = True
             self.put_task(None)
