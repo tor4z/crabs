@@ -105,7 +105,7 @@ class Crabs:
         print(reports, end="\r")
 
     def _exec_route(self, url):
-        self.logger.info("Scraping({0}): {1}".format(url.depth, url))
+        self.logger.debug("Scraping({0}): {1}".format(url.depth, url))
         self.report_collections()
         handler_cls, url, method = self._routes.dispatch(url)
         if handler_cls is None:
