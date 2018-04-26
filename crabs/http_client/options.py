@@ -9,5 +9,6 @@ class Travel:
     BFS = 102
 
 class Method:
+    ALL = ["GET", "POST"]
     GET = "GET"
     POST = "POST"
