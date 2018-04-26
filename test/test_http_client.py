@@ -31,7 +31,7 @@ class TestRequest(unittest.TestCase):
             self.assertEqual(req_headers[key], headers[key])
 
     def random_str(self, n):
-        return "".join(choices("abcdefghijklmnopqrstuvwxyz0123456789", k=i))
+        return "".join(choices("abcdefghijklmnopqrstuvwxyz0123456789", k=n))
 
     def test_set_cookies(self):
         from requests.utils import cookiejar_from_dict
