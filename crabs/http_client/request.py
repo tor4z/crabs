@@ -5,13 +5,26 @@ from .url import URL
 from .options import Method
 
 class Request:
-    def __init__(self, method, url, data, headers):
+    def __init__(self, method, url, data=None, headers={}):
+        if not isinstance(url, URL):
+            raise TypeError("URL required.")
+        if not method in Method.ALL:
+            raise NotSuportMethod("{0} method is not suported.".format(method))
+        if data is not None and not isinstance(data, dict):
+            raise TypeError("Dict required.")
+        if not isinstance(headers, dict):
+            raise TypeError("Dict required.")
         self._headers = headers
         self._prepare = None
         self._url = url
         self._data = data
         self._method = method
         self._cookies = None
+
+    @property
+    def ready(self):
+        return self._url is not None and\
+                self._method is not None
 
     def update_headers(self, headers):
         if not isinstance(headers, dict):
@@ -42,3 +55,6 @@ class Request:
     @property
     def url(self):
         return self._url
+
+class NotSuportMethod(Exception):
+    pass
