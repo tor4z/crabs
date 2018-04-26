@@ -1,4 +1,5 @@
 import unittest
+from random import choices
 from crabs.http_client import Client, Request, Response
 from crabs.http_client.request import NotSuportMethod
 from crabs.http_client.options import Method
@@ -35,7 +36,6 @@ class TestRequest(unittest.TestCase):
     def test_set_cookies(self):
         from requests.utils import cookiejar_from_dict
         from requests.utils import dict_from_cookiejar
-        from random import choices, randint
         n = 10
         cookie_dict = {}
 
